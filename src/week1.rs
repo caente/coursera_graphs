@@ -45,29 +45,20 @@ pub fn dfs_loop(g: &Graph) -> Vec<u32> {
     sizes
 }
 fn dfs(g: &Graph, n: &u32, finishing_order: &mut Vec<u32>, visited: &mut HashSet<u32>) {
-    let mut unfinished = Vec::new();
     let mut to_visit = vec![*n];
     while let Some(next) = to_visit.pop() {
         visited.insert(next);
-        //println!("visited: {:?}", visited);
-        //println!("next: {}", next);
         let mut current_adj: Vec<u32> = adjacents(g, next, visited);
-        //println!("adj: {:?}", current_adj);
         match current_adj.pop() {
             Some(a) => {
+                to_visit.push(next);
                 to_visit.push(a);
-                unfinished.push(next);
             }
             None => {
                 finishing_order.push(next);
-                to_visit.append(&mut unfinished);
-                //println!("finishing_order: {:?}", finishing_order);
             }
         }
-        //println!("to_visit: {:?}", to_visit);
-        //println!("unfinished: {:?}", unfinished);
     }
-    //println!("Finished visiting {:?}", finishing_order);
 }
 
 fn adjacents(g: &Graph, n: u32, visited: &mut HashSet<u32>) -> Vec<u32> {
