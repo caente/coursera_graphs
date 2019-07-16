@@ -1,13 +1,32 @@
 use std::collections::HashMap;
 use std::collections::HashSet;
+use std::fs::File;
+use std::io::BufReader;
+use std::io::prelude::*;
+
+
 
 pub type Graph = HashMap<u32, Vec<u32>>;
-/*
-fn createGraph<'a>(g: &Graph, node: &u32, adj: &u32) -> &'a Graph {
-    g.entry(*node).or_insert(vec![Box::new(*adj)]);
-    &g
+
+pub fn create_graph_from_file(file_name:&str) -> Result<Graph,std::io::Error> {
+    let file = File::open(file_name)?;
+    let buf_reader = BufReader::new(file);
+    let mut g:Graph = HashMap::new();
+    for line in buf_reader.lines() {
+        match line {
+            Ok(l) => {
+                let mut two_values= l.split(' ');
+                let node=   two_values.next().unwrap().parse::<u32>().unwrap();
+                let adj = two_values.next().unwrap().parse::<u32>().unwrap();
+                g.entry(node)
+                    .and_modify(|adjs| adjs.push(adj))
+                    .or_insert(vec![adj]);
+            },
+            _ => ()
+        }
+    }
+    Ok(g)
 }
-*/
 
 pub fn dfs_loop(g: &Graph) -> Vec<u32> {
     let mut keys: Vec<u32> = g.keys().fold(Vec::new(), |mut acc, &k| {
@@ -15,7 +34,6 @@ pub fn dfs_loop(g: &Graph) -> Vec<u32> {
         acc
     });
     keys.sort();
-    //println!("KEYS: {:?}", keys);
     let mut visited: HashSet<u32> = HashSet::new();
     while let Some(n) = keys.pop() {
         if !visited.contains(&n) {
@@ -25,7 +43,7 @@ pub fn dfs_loop(g: &Graph) -> Vec<u32> {
     let sizes = Vec::new();
     sizes
 }
-pub fn dfs(g: &Graph, n: &u32, visited: &mut HashSet<u32>) {
+fn dfs(g: &Graph, n: &u32, visited: &mut HashSet<u32>) {
     visited.insert(*n);
     let mut to_visit = g.get(n).map(|adj| adj.clone()).unwrap_or(Vec::new());
     loop_visits(&g, &mut to_visit, visited);
