@@ -4,8 +4,6 @@ use std::fs::File;
 use std::io::BufReader;
 use std::io::prelude::*;
 
-
-
 pub type Graph = HashMap<u32, Vec<u32>>;
 
 pub fn create_graph_from_file(file_name:&str) -> Result<Graph,std::io::Error> {
