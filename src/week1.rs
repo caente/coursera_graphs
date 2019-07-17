@@ -28,6 +28,7 @@ pub fn run_algo(file_name: &str) -> std::io::Result<()> {
     println!("Sizes: {:?}", sizes);
     Ok(())
 }
+
 pub fn create_graph_from_file(file_name: &str) -> Result<Graph, std::io::Error> {
     let file = File::open(file_name)?;
     let buf_reader = BufReader::new(file);
