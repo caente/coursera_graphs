@@ -6,6 +6,28 @@ use std::io::BufReader;
 
 pub type Graph = HashMap<usize, Vec<usize>>;
 
+pub fn run_algo(file_name: &str) -> std::io::Result<()> {
+    let g = create_graph_from_file(file_name)?;
+    println!("graph created");
+    //println!("g:{:?}",g);
+    let g_rev = reverse_graph(&g);
+    println!("reversed graph created");
+    //println!("g_rev:{:?}",g_rev);
+    let Finished {
+        mut finishing_times,
+        ..
+    } = dfs_loop(&g_rev);
+    println!("finishing_times done");
+    let renamed_graph = rename_graph(&g, &mut finishing_times);
+    println!("renamed graph");
+    //println!("renamed_graph:{:?}",renamed_graph);
+    let Finished { mut sizes, .. } = dfs_loop(&renamed_graph);
+    sizes.sort();
+    sizes.reverse();
+    sizes.truncate(5);
+    println!("Sizes: {:?}", sizes);
+    Ok(())
+}
 pub fn create_graph_from_file(file_name: &str) -> Result<Graph, std::io::Error> {
     let file = File::open(file_name)?;
     let buf_reader = BufReader::new(file);
@@ -26,7 +48,7 @@ pub fn create_graph_from_file(file_name: &str) -> Result<Graph, std::io::Error> 
     Ok(g)
 }
 
-pub fn reverse_graph(g: &Graph) -> Graph {
+fn reverse_graph(g: &Graph) -> Graph {
     let mut rev: Graph = HashMap::new();
     for (&node, _adj) in g {
         let mut adj = _adj.clone();
@@ -39,12 +61,12 @@ pub fn reverse_graph(g: &Graph) -> Graph {
     rev
 }
 
-pub struct Finished {
+struct Finished {
     pub finishing_times: Vec<usize>,
     pub sizes: Vec<usize>,
 }
 
-pub fn rename_graph(g: &Graph, finishing_times: &mut Vec<usize>) -> Graph {
+fn rename_graph(g: &Graph, finishing_times: &mut Vec<usize>) -> Graph {
     let mut new_labels: HashMap<usize, usize> = HashMap::new();
     let mut renamed: Graph = HashMap::new();
     let mut counter = 0;
@@ -64,7 +86,7 @@ pub fn rename_graph(g: &Graph, finishing_times: &mut Vec<usize>) -> Graph {
     renamed
 }
 
-pub fn dfs_loop(g: &Graph) -> Finished {
+fn dfs_loop(g: &Graph) -> Finished {
     let mut visited: HashSet<usize> = HashSet::new();
     let mut finishing_times = Vec::new();
     let mut sizes = Vec::new();
