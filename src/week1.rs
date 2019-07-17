@@ -82,12 +82,12 @@ pub fn dfs_loop(g: &Graph) -> Finished {
     }
 }
 
-fn sorted_nodes(g:&Graph) -> Vec<usize> {
+fn sorted_nodes(g: &Graph) -> Vec<usize> {
     let mut node_set = HashSet::new();
     for (&node, adj) in g {
         node_set.insert(node);
         let mut adj_c = adj.clone();
-        while let Some(a) =adj_c.pop() {
+        while let Some(a) = adj_c.pop() {
             node_set.insert(a);
         }
     }
@@ -97,22 +97,21 @@ fn sorted_nodes(g:&Graph) -> Vec<usize> {
     });
     keys.sort();
     keys
-
 }
 
 fn dfs_for_finishing_times(g: &Graph, n: &usize, visited: &mut HashSet<usize>) -> Vec<usize> {
     let mut to_visit = vec![*n];
     let mut finishing_times = Vec::new();
-    while let Some(next) = to_visit.pop() {
-        visited.insert(next);
-        let mut current_adj: Vec<usize> = adjacents(g, next, visited);
+    while let Some(node) = to_visit.pop() {
+        visited.insert(node);
+        let mut current_adj: Vec<usize> = adjacents(g, node, visited);
         match current_adj.pop() {
             Some(a) => {
-                to_visit.push(next);
-                to_visit.push(a);
+                to_visit.push(node); //not done with `node` yet, putting back to the stack
+                to_visit.push(a); //next node to visit is the first adjacent of `node`
             }
             None => {
-                finishing_times.push(next);
+                finishing_times.push(node);
             }
         }
     }

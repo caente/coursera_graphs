@@ -2,7 +2,7 @@
 mod week1;
 
 fn main() -> std::io::Result<()> {
-    let g = week1::create_graph_from_file("SCC.txt")?;
+    let g = week1::create_graph_from_file("graph.txt")?;
     println!("graph created");
     //println!("g:{:?}",g);
     let g_rev = week1::reverse_graph(&g);
