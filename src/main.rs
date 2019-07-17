@@ -2,7 +2,7 @@
 mod week1;
 
 fn main() -> std::io::Result<()> {
-    let g = week1::create_graph_from_file("graph.txt")?;
+    let g = week1::create_graph_from_file("SCC.txt")?;
     println!("graph created");
     //println!("g:{:?}",g);
     let g_rev = week1::reverse_graph(&g);
@@ -12,7 +12,7 @@ fn main() -> std::io::Result<()> {
         mut finishing_times,
         ..
     } = week1::dfs_loop(&g_rev);
-    println!("dfs finished");
+    println!("finishing_times done");
     let renamed_graph = week1::rename_graph(&g, &mut finishing_times);
     println!("renamed graph");
     //println!("renamed_graph:{:?}",renamed_graph);

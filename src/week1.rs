@@ -65,28 +65,39 @@ pub fn rename_graph(g: &Graph, finishing_times: &mut Vec<usize>) -> Graph {
 }
 
 pub fn dfs_loop(g: &Graph) -> Finished {
-    let mut keys: Vec<usize> = g.keys().fold(Vec::new(), |mut acc, &k| {
-        acc.push(k);
-        acc
-    });
-    keys.sort();
-    //println!("KEYS:{:?}", keys);
     let mut visited: HashSet<usize> = HashSet::new();
     let mut finishing_times = Vec::new();
     let mut sizes = Vec::new();
-    while let Some(n) = keys.pop() {
+    let mut nodes = sorted_nodes(&g);
+    while let Some(n) = nodes.pop() {
         if !visited.contains(&n) {
             let mut finishing_batch = dfs_for_finishing_times(g, &n, &mut visited);
             sizes.push(finishing_batch.len());
             finishing_times.append(&mut finishing_batch);
         }
     }
-    //println!("Finished visiting {:?}", finishing_times);
-    //println!("Size {:?}", sizes);
     Finished {
         finishing_times,
         sizes,
     }
+}
+
+fn sorted_nodes(g:&Graph) -> Vec<usize> {
+    let mut node_set = HashSet::new();
+    for (&node, adj) in g {
+        node_set.insert(node);
+        let mut adj_c = adj.clone();
+        while let Some(a) =adj_c.pop() {
+            node_set.insert(a);
+        }
+    }
+    let mut keys: Vec<usize> = node_set.drain().fold(Vec::new(), |mut acc, k| {
+        acc.push(k);
+        acc
+    });
+    keys.sort();
+    keys
+
 }
 
 fn dfs_for_finishing_times(g: &Graph, n: &usize, visited: &mut HashSet<usize>) -> Vec<usize> {
