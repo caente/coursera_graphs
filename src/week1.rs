@@ -76,7 +76,7 @@ pub fn dfs_loop(g: &Graph) -> Finished {
     let mut sizes = Vec::new();
     while let Some(n) = keys.pop() {
         if !visited.contains(&n) {
-            let mut finishing_batch = dfs(g, &n, &mut visited);
+            let mut finishing_batch = dfs_for_finishing_times(g, &n, &mut visited);
             sizes.push(finishing_batch.len());
             finishing_times.append(&mut finishing_batch);
         }
@@ -89,7 +89,7 @@ pub fn dfs_loop(g: &Graph) -> Finished {
     }
 }
 
-fn dfs(g: &Graph, n: &usize, visited: &mut HashSet<usize>) -> Vec<usize> {
+fn dfs_for_finishing_times(g: &Graph, n: &usize, visited: &mut HashSet<usize>) -> Vec<usize> {
     let mut to_visit = vec![*n];
     let mut finishing_times = Vec::new();
     while let Some(next) = to_visit.pop() {
