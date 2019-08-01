@@ -25,37 +25,19 @@ pub fn medians(numbers: Vec<usize>) -> Vec<usize> {
     let mut upper: BinaryHeap<Reverse<usize>> = BinaryHeap::new();
     let mut median = Vec::new();
     for &number in numbers.iter() {
-        match (lower.pop(), upper.pop()) {
-            (Some(l), Some(Reverse(u))) => {
+        match lower.peek() {
+            Some(&l) => {
                 if number < l {
-                    upper.push(Reverse(u));
                     lower.push(number);
-                    lower.push(l);
                 } else {
-                    lower.push(l);
-                    upper.push(Reverse(u));
                     upper.push(Reverse(number));
                 }
             }
-            (Some(l), None) => {
-                if number < l {
-                    lower.push(number);
-                    upper.push(Reverse(l));
-                } else {
-                    upper.push(Reverse(number));
-                    lower.push(l);
-                }
-            }
-            (None, _) => {
-                lower.push(number);
-            }
+            None => lower.push(number),
         }
-
         balance_heaps(&mut lower, &mut upper);
         match lower.peek() {
-            Some(m) => {
-                median.push(*m)
-            }
+            Some(m) => median.push(*m),
             None => (),
         }
     }
