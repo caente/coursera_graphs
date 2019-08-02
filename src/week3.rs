@@ -26,14 +26,13 @@ pub fn medians(numbers: Vec<usize>) -> Vec<usize> {
     let mut median = Vec::new();
     for &number in numbers.iter() {
         match lower.peek() {
-            Some(&l) => {
+            Some(&l) => 
                 if number < l {
                     lower.push(number);
                 } else {
                     upper.push(Reverse(number));
-                }
-            }
-            None => lower.push(number),
+                },
+            None => lower.push(number)
         }
         balance_heaps(&mut lower, &mut upper);
         match lower.peek() {
