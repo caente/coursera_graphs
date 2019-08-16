@@ -13,10 +13,10 @@ pub fn load_numbers(file_name: &str) -> Result<HashSet<i64>, std::io::Error> {
     let mut numbers = HashSet::new();
     let mut c = 0;
     for line in buf_reader.lines() {
-        if c >= 15 {
-            break;
-        }
-        c += 1;
+        //if c >= 15 {
+        //    break;
+        //}
+        //c += 1;
         match line {
             Ok(l) => {
                 let number = l.parse::<i64>().unwrap();
@@ -34,7 +34,7 @@ pub fn sum2(numbers: HashSet<i64>, ts: Range<i64>) -> usize {
         acc
     });
     numbers_v.sort();
-    println!("numbers_v:{:?}", numbers_v);
+    println!("numbers_v:{:?}", numbers_v.len());
     let min = numbers_v[0];
     println!("min:{}", min);
 
@@ -44,10 +44,10 @@ pub fn sum2(numbers: HashSet<i64>, ts: Range<i64>) -> usize {
         regions
     });
     regions.sort_by(|r1, r2| r1.start.cmp(&r2.start));
-    println!("regions {:?}", regions);
+    println!("regions {:?}", regions.len());
 
     let mut counter = 0;
-    let mut found = vec![];
+    let mut found = HashSet::new();
     let exploration = regions.iter().fold(
         regions[0].start..regions[0].start,
         |previously_explored, region| {
@@ -68,8 +68,10 @@ pub fn sum2(numbers: HashSet<i64>, ts: Range<i64>) -> usize {
                     println!("upper_bound:{}", upper_bound);
                     println!("low:{}", numbers_v[lower_bound]);
                     println!("up:{}", numbers_v[upper_bound]);
-                    let mut v = numbers_v[lower_bound..upper_bound + 1].to_vec();
-                    found.append(&mut v);
+                    let v = numbers_v[lower_bound..upper_bound + 1].to_vec();
+                    for i in v {
+                        found.insert(i);
+                    }
                     let count = numbers_v[lower_bound..upper_bound].len() + 1;
                     counter += count;
                     println!("count {:?}", count);
@@ -80,6 +82,12 @@ pub fn sum2(numbers: HashSet<i64>, ts: Range<i64>) -> usize {
                 Some(upper_bound) => explored.start..numbers_v[upper_bound].max(explored.end),
                 None => explored,
             };
+            //println!("found {:?}", found);
+            //println!(
+            //    "found.difference(numbers): {:?}",
+            //    found.difference(&numbers)
+            //);
+            println!("numbers.len - found.len: {:?}", numbers.len() - found.len());
             println!("explored final {:?}", final_explored);
             final_explored
         },
