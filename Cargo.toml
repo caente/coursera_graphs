@@ -5,5 +5,4 @@ authors = ["miguel <miguel@human.x.ai>"]
 edition = "2018"
 
 [dependencies]
-vpsearch = "1.3.5"
 
