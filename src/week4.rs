@@ -44,66 +44,77 @@ pub fn sum2(numbers: HashSet<i64>, ts: Range<i64>) -> usize {
     //println!("regions {:?}", regions);
 
     let mut found = HashSet::new();
-    let mut seen = HashSet::new();
-    let exploration = regions.iter().fold(
-        regions[0].1.start..regions[0].1.start,
-        |previously_explored, (x, region)| {
-            let (explored, unexplored) = find_unexplored(&previously_explored, &region);
-            println!("x {:?}", x);
-            println!("region {:?}", region);
-            //println!("previously_explored {:?}", previously_explored);
-            //println!("unexplored {:?}", unexplored);
-            unexplored.and_then(|region| {
-                let lower_bound =
-                    search_positition_in_region(&numbers_v, &region.start, &region, |x| {
-                        *x >= region.start
-                    })?;
-                //println!("lower_bound:{}", lower_bound);
-                //println!("low:{}", numbers_v[lower_bound]);
-                let _upper_bound =
-                    search_positition_in_region(&numbers_v, &region.end, &region, |x| {
-                        *x >= region.end || x == numbers_v.last().unwrap()
-                    })?;
-                //println!("upper_bound:{}", _upper_bound);
-                //println!("up:{}", numbers_v[_upper_bound]);
-                let upper_bound = if numbers.contains(&numbers_v[_upper_bound]) {
-                    _upper_bound + 1
-                } else {
-                    _upper_bound
-                };
-                let candidates: Vec<i64> = numbers_v[lower_bound..upper_bound].to_vec();
-                //println!("candidates {:?}", candidates);
-                let ys = candidates.iter().fold(vec![], |mut ys, y| {
-                    let t = y + *x;
-                    //println!("{} + {} = {}", x, y, t);
-                    if !found.contains(&t) {
-                        ys.push(y);
-                    };
-                    ys
-                });
-                //println!("ys {:?}", ys);
-                let count = ys.len();
-                println!("count:{}", count);
-                for y in ys {
-                    if !(ts.start..ts.end + 1).contains(&(*x + y)) {
-                        panic!("oh oh");
-                    }
-                    seen.insert(*y);
-                    found.insert(*x + *y);
-                }
-                //println!("seen {:?}", seen);
-                if found.len() > 427 {
-                    panic!("too bad");
-                }
-                Some(upper_bound)
-            });
-            println!("found {:?}", found.len());
-            println!("explored final {:?}", explored.end);
-            println!("-----------------------");
-            explored
-        },
-    );
-    println!("exploration {:?}", exploration);
+    //let mut seen = HashSet::new();
+    for (x, region) in regions {
+        println!("x {:?}", x);
+        println!("region {:?}", region);
+        for y in region.start..region.end {
+            let t = y + *x;
+            if numbers.contains(&y) && !found.contains(&t) {
+                found.insert(t);
+            }
+        }
+        println!("found {:?}", found.len());
+    }
+    //let exploration = regions.iter().fold(
+    //    regions[0].1.start..regions[0].1.start,
+    //    |previously_explored, (x, region)| {
+    //        let (explored, unexplored) = find_unexplored(&previously_explored, &region);
+    //        println!("x {:?}", x);
+    //        println!("region {:?}", region);
+    //        //println!("previously_explored {:?}", previously_explored);
+    //        //println!("unexplored {:?}", unexplored);
+    //        unexplored.and_then(|region| {
+    //            let lower_bound =
+    //                search_positition_in_region(&numbers_v, &region.start, &region, |x| {
+    //                    *x >= region.start
+    //                })?;
+    //            //println!("lower_bound:{}", lower_bound);
+    //            //println!("low:{}", numbers_v[lower_bound]);
+    //            let _upper_bound =
+    //                search_positition_in_region(&numbers_v, &region.end, &region, |x| {
+    //                    *x >= region.end || x == numbers_v.last().unwrap()
+    //                })?;
+    //            //println!("upper_bound:{}", _upper_bound);
+    //            //println!("up:{}", numbers_v[_upper_bound]);
+    //            let upper_bound = if numbers.contains(&numbers_v[_upper_bound]) {
+    //                _upper_bound + 1
+    //            } else {
+    //                _upper_bound
+    //            };
+    //            let candidates: Vec<i64> = numbers_v[lower_bound..upper_bound].to_vec();
+    //            //println!("candidates {:?}", candidates);
+    //            let ys = candidates.iter().fold(vec![], |mut ys, y| {
+    //                let t = y + *x;
+    //                //println!("{} + {} = {}", x, y, t);
+    //                if !found.contains(&t) {
+    //                    ys.push(y);
+    //                };
+    //                ys
+    //            });
+    //            //println!("ys {:?}", ys);
+    //            let count = ys.len();
+    //            println!("count:{}", count);
+    //            for y in ys {
+    //                if !(ts.start..ts.end + 1).contains(&(*x + y)) {
+    //                    panic!("oh oh");
+    //                }
+    //                seen.insert(*y);
+    //                found.insert(*x + *y);
+    //            }
+    //            //println!("seen {:?}", seen);
+    //            if found.len() > 427 {
+    //                panic!("too bad");
+    //            }
+    //            Some(upper_bound)
+    //        });
+    //        println!("found {:?}", found.len());
+    //        println!("explored final {:?}", explored.end);
+    //        println!("-----------------------");
+    //        explored
+    //    },
+    //);
+    //println!("exploration {:?}", exploration);
     found.len()
 }
 
