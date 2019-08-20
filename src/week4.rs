@@ -62,10 +62,14 @@ fn search_lower_bound(numbers: &[i64], region: &Range<i64>) -> Option<usize> {
 }
 
 fn search_upper_bound(numbers: &[i64], region: &Range<i64>) -> Option<usize> {
-    let upper_bound = search_positition_in_region(numbers, &region.end, &region, |x| {
-        *x >= region.end || x == numbers.last().unwrap()
-    })?;
-    Some(upper_bound + 1)
+    numbers
+        .last()
+        .and_then(|last| {
+            search_positition_in_region(numbers, &region.end, &region, |x| {
+                *x >= region.end || x == last
+            })
+        })
+        .map(|upper_bound| upper_bound + 1)
 }
 
 fn search_positition_in_region<F>(
