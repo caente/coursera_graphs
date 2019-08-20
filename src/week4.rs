@@ -40,50 +40,52 @@ pub fn sum2(numbers: HashSet<i64>, ts: Range<i64>) -> usize {
         regions
     });
     regions.sort_by(|r1, r2| r1.1.start.cmp(&r2.1.start));
-    let mut found = HashSet::new();
-    let mut seen = HashSet::new();
-    regions.iter().fold(
-        (regions[0].1.start..regions[0].1.start, 0),
-        |(previously_explored, offset), (x, region)| {
-            let (explored, unexplored) = find_unexplored(&previously_explored, &region);
+    let (found, _, _) = regions.iter().fold(
+        (HashSet::new(), regions[0].1.start..regions[0].1.start, 0),
+        |(mut found, previously_explored, offset), (x, region)| {
             println!("x {:?}", x);
             println!("region {:?}", region);
-            let new_offset = unexplored.and_then(|region| {
-                let sliced_numbers = &numbers_v[offset..];
-                println!("sliced_numbers:{:?}", sliced_numbers.len());
-                let lower_bound =
-                    search_positition_in_region(&sliced_numbers, &region.start, &region, |x| {
-                        *x >= region.start
-                    })? + offset;
-                let _upper_bound =
-                    search_positition_in_region(&sliced_numbers, &region.end, &region, |x| {
-                        *x >= region.end || x == numbers_v.last().unwrap()
-                    })? + offset;
-                let upper_bound = if numbers.contains(&numbers_v[_upper_bound]) {
-                    _upper_bound + 1
-                } else {
-                    _upper_bound
-                };
-                let candidates: Vec<i64> = numbers_v[lower_bound..upper_bound].to_vec();
-                let ys = candidates.iter().fold(vec![], |mut ys, y| {
-                    let t = y + *x;
-                    if !found.contains(&t) {
-                        ys.push(y);
+            let sliced_numbers = &numbers_v[offset..];
+            let new_offset =
+                find_unexplored(&previously_explored, &region).and_then(|unexplored| {
+                    println!("sliced_numbers:{:?}", sliced_numbers.len());
+                    let lower_bound = search_positition_in_region(
+                        &sliced_numbers,
+                        &unexplored.start,
+                        &unexplored,
+                        |x| *x >= unexplored.start,
+                    )? + offset;
+                    let _upper_bound = search_positition_in_region(
+                        &sliced_numbers,
+                        &unexplored.end,
+                        &unexplored,
+                        |x| *x >= unexplored.end || x == numbers_v.last().unwrap(),
+                    )? + offset;
+                    let upper_bound = if numbers.contains(&numbers_v[_upper_bound]) {
+                        _upper_bound + 1
+                    } else {
+                        _upper_bound
                     };
-                    ys
-                });
-                for y in ys {
-                    if !(ts.start..ts.end + 1).contains(&(*x + y)) {
-                        panic!("{} + {} must be within {:?}", x, y, ts);
+                    let candidates: Vec<i64> = numbers_v[lower_bound..upper_bound].to_vec();
+                    let ys = candidates.iter().fold(vec![], |mut ys, y| {
+                        let t = y + *x;
+                        if !found.contains(&t) {
+                            ys.push(y);
+                        };
+                        ys
+                    });
+                    for y in ys {
+                        if !(ts.start..ts.end + 1).contains(&(*x + y)) {
+                            panic!("{} + {} must be within {:?}", x, y, ts);
+                        }
+                        found.insert(*x + *y);
                     }
-                    seen.insert(*y);
-                    found.insert(*x + *y);
-                }
-                Some(upper_bound)
-            });
+                    Some(upper_bound)
+                });
             println!("found {:?}", found.len());
             println!("-----------------------");
-            (explored, new_offset.unwrap_or(offset))
+            let explored = previously_explored.start..previously_explored.end.max(region.end);
+            (found, explored, new_offset.unwrap_or(offset))
         },
     );
     found.len()
@@ -112,24 +114,15 @@ where
     })
 }
 
-fn find_unexplored(
-    explored: &Range<i64>,
-    candidate: &Range<i64>,
-) -> (Range<i64>, Option<Range<i64>>) {
+fn find_unexplored(explored: &Range<i64>, candidate: &Range<i64>) -> Option<Range<i64>> {
     if explored.contains(&candidate.start) && candidate.contains(&explored.end) {
-        (
-            explored.start..candidate.end,
-            Some(explored.end + 1..candidate.end),
-        )
+        Some(explored.end + 1..candidate.end)
     } else if explored.contains(&candidate.start) && explored.contains(&candidate.end) {
-        (explored.start..explored.end, None)
+        None
     } else if candidate.start >= explored.start && candidate.end > explored.end {
-        (
-            explored.start..candidate.end,
-            Some(candidate.start..candidate.end),
-        )
+        Some(candidate.start..candidate.end)
     } else {
-        (explored.start..explored.end, None)
+        None
     }
 }
 
