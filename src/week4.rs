@@ -5,15 +5,15 @@ use std::io::BufReader;
 use std::ops::Range;
 //427
 
-pub fn load_numbers(file_name: &str) -> Result<HashSet<i64>, std::io::Error> {
+pub fn load_numbers(file_name: &str) -> Result<Vec<i64>, std::io::Error> {
     let file = File::open(file_name)?;
     let buf_reader = BufReader::new(file);
-    let mut numbers = HashSet::new();
+    let mut numbers = Vec::new();
     for line in buf_reader.lines() {
         match line {
             Ok(l) => {
                 let number = l.parse::<i64>().unwrap();
-                numbers.insert(number);
+                numbers.push(number);
             }
             _ => (),
         }
@@ -21,18 +21,9 @@ pub fn load_numbers(file_name: &str) -> Result<HashSet<i64>, std::io::Error> {
     Ok(numbers)
 }
 
-pub fn sum2(numbers: HashSet<i64>, ts: Range<i64>) -> usize {
-    let mut numbers_v: Vec<i64> = numbers.iter().fold(vec![], |mut acc, n| {
-        acc.push(*n);
-        acc
-    });
+pub fn sum2(numbers_v: &mut Vec<i64>, ts: Range<i64>) -> usize {
     numbers_v.sort();
-    let min = numbers_v[0];
-    let max = numbers_v.last().unwrap();
-    println!("min:{}", min);
-    println!("max:{}", max);
-
-    let mut regions: Vec<(&i64, Range<i64>)> = numbers.iter().fold(vec![], |mut regions, x| {
+    let mut regions: Vec<(&i64, Range<i64>)> = numbers_v.iter().fold(vec![], |mut regions, x| {
         let region = candidates_region(x, &ts);
         if *x > region.end {
             regions.push((x, region));
@@ -49,36 +40,11 @@ pub fn sum2(numbers: HashSet<i64>, ts: Range<i64>) -> usize {
             let new_offset =
                 find_unexplored(&previously_explored, &region).and_then(|unexplored| {
                     println!("sliced_numbers:{:?}", sliced_numbers.len());
-                    let lower_bound = search_positition_in_region(
-                        &sliced_numbers,
-                        &unexplored.start,
-                        &unexplored,
-                        |x| *x >= unexplored.start,
-                    )? + offset;
-                    let _upper_bound = search_positition_in_region(
-                        &sliced_numbers,
-                        &unexplored.end,
-                        &unexplored,
-                        |x| *x >= unexplored.end || x == numbers_v.last().unwrap(),
-                    )? + offset;
-                    let upper_bound = if numbers.contains(&numbers_v[_upper_bound]) {
-                        _upper_bound + 1
-                    } else {
-                        _upper_bound
-                    };
-                    let candidates: Vec<i64> = numbers_v[lower_bound..upper_bound].to_vec();
-                    let ys = candidates.iter().fold(vec![], |mut ys, y| {
+                    let lower_bound = search_lower_bound(&sliced_numbers, &unexplored)? + offset;
+                    let upper_bound = search_upper_bound(&sliced_numbers, &unexplored)? + offset;
+                    for y in numbers_v[lower_bound..upper_bound].iter() {
                         let t = y + *x;
-                        if !found.contains(&t) {
-                            ys.push(y);
-                        };
-                        ys
-                    });
-                    for y in ys {
-                        if !(ts.start..ts.end + 1).contains(&(*x + y)) {
-                            panic!("{} + {} must be within {:?}", x, y, ts);
-                        }
-                        found.insert(*x + *y);
+                        found.insert(t);
                     }
                     Some(upper_bound)
                 });
@@ -91,9 +57,20 @@ pub fn sum2(numbers: HashSet<i64>, ts: Range<i64>) -> usize {
     found.len()
 }
 
+fn search_lower_bound(numbers: &[i64], region: &Range<i64>) -> Option<usize> {
+    search_positition_in_region(&numbers, &region.start, &region, |x| *x >= region.start)
+}
+
+fn search_upper_bound(numbers: &[i64], region: &Range<i64>) -> Option<usize> {
+    let upper_bound = search_positition_in_region(numbers, &region.end, &region, |x| {
+        *x >= region.end || x == numbers.last().unwrap()
+    })?;
+    Some(upper_bound + 1)
+}
+
 fn search_positition_in_region<F>(
     numbers: &[i64],
-    n: &i64,
+    ideal: &i64,
     _region: &Range<i64>,
     f: F,
 ) -> Option<usize>
@@ -102,7 +79,7 @@ where
 {
     let inclusive_region = _region.start.._region.end + 1;
     numbers.iter().position(f).and_then(|pos| {
-        if numbers[pos] == *n {
+        if numbers[pos] == *ideal {
             Some(pos)
         } else if pos > 0 && inclusive_region.contains(&numbers[pos - 1]) {
             Some(pos - 1)
