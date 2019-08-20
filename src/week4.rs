@@ -45,17 +45,41 @@ pub fn sum2(numbers: HashSet<i64>, ts: Range<i64>) -> usize {
 
     let mut found = HashSet::new();
     //let mut seen = HashSet::new();
-    for (x, region) in regions {
-        println!("x {:?}", x);
-        println!("region {:?}", region);
-        for y in region.start..region.end {
-            let t = y + *x;
-            if numbers.contains(&y) && !found.contains(&t) {
-                found.insert(t);
-            }
-        }
-        println!("found {:?}", found.len());
-    }
+    let mut less_count = 0;
+    let mut less_total = 0;
+    let mut less_avg = 0;
+    let mut reg_count = 0;
+    regions.iter().fold(
+        regions[0].1.start..regions[0].1.start,
+        |previously_explored, (x, region)| {
+            reg_count += 1;
+            let (explored, unexplored) = find_unexplored(&previously_explored, &region);
+            println!("x {:?}", x);
+            println!("region {:?}", region);
+            let r = region.end - region.start;
+            unexplored.iter().for_each(|unexplored| {
+                let l = unexplored.end - unexplored.start;
+                if l < r {
+                    less_count += 1;
+                    less_total += l;
+                    less_avg = less_total / less_count;
+                }
+
+                for y in unexplored.start..unexplored.end + 1 {
+                    let t = y + *x;
+                    if numbers.contains(&y) && !found.contains(&t) {
+                        found.insert(t);
+                    }
+                }
+            });
+            println!("found {:?}", found.len());
+            println!("less {:?}", less_count);
+            println!("less total: {:?}", less_total);
+            println!("less avg: {:?}", less_avg);
+            println!("reg_count {:?}", reg_count);
+            explored
+        },
+    );
     //let exploration = regions.iter().fold(
     //    regions[0].1.start..regions[0].1.start,
     //    |previously_explored, (x, region)| {
