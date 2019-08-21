@@ -51,6 +51,9 @@ pub fn sum2(numbers_v: &mut Vec<i64>, ts: Range<i64>) -> usize {
             println!("found {:?}", found.len());
             println!("-----------------------");
             let explored = previously_explored.start..previously_explored.end.max(region.end);
+            new_offset
+                .iter()
+                .for_each(|n| println!("distance:{}", n - offset));
             (found, explored, new_offset.unwrap_or(offset))
         },
     );
@@ -58,15 +61,15 @@ pub fn sum2(numbers_v: &mut Vec<i64>, ts: Range<i64>) -> usize {
 }
 
 fn search_lower_bound(numbers: &[i64], region: &Range<i64>) -> Option<usize> {
-    search_positition_in_region(&numbers, &region.start, &region, |x| *x >= region.start)
+    search_positition_in_region(&numbers, &region.start, &region, |y| *y >= region.start)
 }
 
 fn search_upper_bound(numbers: &[i64], region: &Range<i64>) -> Option<usize> {
     numbers
         .last()
         .and_then(|last| {
-            search_positition_in_region(numbers, &region.end, &region, |x| {
-                *x >= region.end || x == last
+            search_positition_in_region(numbers, &region.end, &region, |y| {
+                *y >= region.end || y == last
             })
         })
         .map(|upper_bound| upper_bound + 1)
@@ -83,6 +86,7 @@ where
 {
     let inclusive_region = _region.start.._region.end + 1;
     numbers.iter().position(f).and_then(|pos| {
+        println!("pos: {}", pos);
         if numbers[pos] == *ideal {
             Some(pos)
         } else if pos > 0 && inclusive_region.contains(&numbers[pos - 1]) {
@@ -96,11 +100,9 @@ where
 }
 
 fn find_unexplored(explored: &Range<i64>, candidate: &Range<i64>) -> Option<Range<i64>> {
-    if explored.contains(&candidate.start) && candidate.contains(&explored.end) {
-        Some(explored.end + 1..candidate.end)
-    } else if explored.contains(&candidate.start) && explored.contains(&candidate.end) {
-        None
-    } else if candidate.start >= explored.start && candidate.end > explored.end {
+    if candidate.start < explored.end {
+        Some(explored.end..candidate.end)
+    } else if candidate.start > explored.end {
         Some(candidate.start..candidate.end)
     } else {
         None
